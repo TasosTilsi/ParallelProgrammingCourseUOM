@@ -1,7 +1,5 @@
 public class NumIntPar {
 
-    static double staticSum = 0.0;
-
     public static void main(String[] args) {
 
         int systemCores = Runtime.getRuntime().availableProcessors();
@@ -10,7 +8,7 @@ public class NumIntPar {
         long numSteps = 0;
 
         /* parse command line */
-//        numSteps = Long.parseLong("1000000");
+//        numSteps = Long.parseLong("100000000000");
         if (args.length != 1) {
             System.out.println("arguments:  number_of_steps");
             System.exit(1);
@@ -18,7 +16,7 @@ public class NumIntPar {
         try {
             numSteps = Long.parseLong(args[0]);
         } catch (NumberFormatException e) {
-            System.out.println("argument "+ args[0] +" must be long int");
+            System.out.println("argument " + args[0] + " must be long int");
             System.exit(1);
         }
 
@@ -28,6 +26,7 @@ public class NumIntPar {
         /* do computation */
         double step = 1.0 / (double) numSteps;
         Thread[] threads = new Thread[NUMBER_OF_THREADS];
+        SharedData myData = new SharedData();
 
         long myIndex = numSteps / NUMBER_OF_THREADS;
 
@@ -35,17 +34,27 @@ public class NumIntPar {
 
         /* create and start threads */
         for (int i = 1; i <= NUMBER_OF_THREADS; i++) {
-            System.out.println("In main: create and start thread " + i);
+//            System.out.println("In main: create and start thread " + i);
             int finalI = i;
             long finalNumSteps = numSteps;
             threads[i - 1] = new Thread() {
                 @Override
                 public void run() {
                     super.run();
+                    double inThreadSum = 0.0;
                     if (finalI == NUMBER_OF_THREADS) {
-                        doComputation(step, myIndex * (finalI - 1), finalNumSteps);
+
+                        inThreadSum = doComputation(step, myIndex * (finalI - 1), finalNumSteps);
+
                     } else {
-                        doComputation(step, myIndex * (finalI - 1), myIndex * finalI);
+                        inThreadSum = doComputation(step, myIndex * (finalI - 1), myIndex * finalI);
+                    }
+
+                    myData.getGlobalSumLock().lock();
+                    try {
+                        myData.setGlobalSum(myData.getGlobalSum() + inThreadSum);
+                    } finally {
+                        myData.getGlobalSumLock().unlock();
                     }
                 }
             };
@@ -61,7 +70,7 @@ public class NumIntPar {
             }
         }
 
-        double pi = staticSum * step;
+        double pi = myData.getGlobalSum() * step;
 
         /* end timing and print result */
         long endTime = System.currentTimeMillis();
@@ -74,7 +83,6 @@ public class NumIntPar {
             double x = ((double) i + 0.5) * step;
             sum += 4.0 / (1.0 + x * x);
         }
-        staticSum += sum;
 //        System.out.println(myFirstIndex + "|---|" + myLastIndex + "|---|" + staticSum * step);
         return sum;
     }
