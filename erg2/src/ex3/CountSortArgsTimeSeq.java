@@ -1,39 +1,34 @@
-package ex4;
+package ex3;
 
-import java.util.Random;
-
-class BackSubArgsTime {
+class CountSortArgsTimeSeq {
     public static void main(String[] args) {
 
-        int size = 1000;
+        int size = 10000;
 
-//		letUserDecideTheSize(args);
+        //        letUserDecideTheSize(args);
 
-
-        double[][] a = new double[size][size];
-        double[] b = new double[size];
-        double[] x = new double[size];
-
-        //random doubles between 1.0 and 2.0
-        Random r = new Random();
+        int[] a = new int[size];
+        int[] b = new int[size];
         for (int i = 0; i < size; i++) {
-            x[i] = 0.0;
-            b[i] = 1.0 + (2.0 - 1.0) * r.nextDouble();
-            a[i][i] = 2.0 + (1.0 + (2.0 - 1.0) * r.nextDouble());
-            for (int j = 0; j < i; j++)
-                a[i][j] = 1.0 + (2.0 - 1.0) * r.nextDouble();
+//            a[i] = i;
+            a[i] = (int) (Math.random() * size);
+            b[i] = 0;
         }
 
+        /* for debugging */
+//        for (int i = 0; i < size; i++)
+//            System.out.println(a[i]);
 
         // get current time
         long start = System.currentTimeMillis();
 
         for (int i = 0; i < size; i++) {
-            double sum = 0.0;
-            for (int j = 0; j < i; j++) {
-                sum = sum + (x[j] * a[i][j]);
-            }
-            x[i] = (b[i] - sum) / a[i][i];
+            int mynum = a[i];
+            int myplace = 0;
+            for (int j = 0; j < size; j++)
+                if (mynum < a[j] || (mynum == a[j] && j < i))
+                    myplace++;
+            b[myplace] = mynum;
         }
 
         // get current time and calculate elapsed time
@@ -41,14 +36,14 @@ class BackSubArgsTime {
         System.out.println("time in ms = " + elapsedTimeMillis);
 
         /* for debugging */
-        for (int i = 0; i < size; i++)
-            System.out.println(x[i]);
+//        for (int i = 0; i < size; i++)
+//            System.out.println(b[i]);
     }
 
     private static int letUserDecideTheSize(String[] args) {
         int size = 0;
         if (args.length != 1) {
-            System.out.println("Usage: java CountSortArgsTime <problem size>");
+            System.out.println("Usage: java CountSortArgsTime <vector size>");
             System.exit(1);
         }
 
